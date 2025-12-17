@@ -16,9 +16,12 @@
 // Détermine la page active pour la navigation
 $currentPath = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?? '/';
 $isHome = ($currentPath === '/');
-$isProducts = ($currentPath === '/products');
+$isProducts = ($currentPath === '/products' || strpos($currentPath, '/products/show') === 0);
 $isProductsCreate = ($currentPath === '/products/create');
 $isUsersCreate = ($currentPath === '/users/create');
+$isCart = ($currentPath === '/cart');
+$isOrders = (strpos($currentPath, '/orders') === 0);
+$user_id = $_GET['user_id'] ?? 1; // Par défaut user_id = 1 pour la démo
 ?>
 <!-- En-tête de la page -->
 <header style="background-color: #343a40; color: white; padding: 15px 0; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
@@ -70,7 +73,7 @@ $isUsersCreate = ($currentPath === '/users/create');
                         ➕ Ajouter un produit
                     </a>
                 </li>
-                <li>
+                <!-- <li>
                     <a href="/users/create" 
                        style="color: <?= $isUsersCreate ? '#ffc107' : 'white' ?>; 
                               text-decoration: none; 
@@ -81,6 +84,36 @@ $isUsersCreate = ($currentPath === '/users/create');
                        onmouseover="this.style.backgroundColor='rgba(255,255,255,0.1)'"
                        onmouseout="this.style.backgroundColor='transparent'">
                         👤 Ajouter un utilisateur
+                    </a>
+                </li> -->
+                <li>
+                    <a href="/cart?user_id=<?= $user_id ?>" 
+                       style="color: <?= $isCart ? '#ffc107' : 'white' ?>; 
+                              text-decoration: none; 
+                              padding: 8px 15px; 
+                              border-radius: 4px;
+                              display: inline-block;
+                              transition: background-color 0.3s;
+                              background-color: <?= $isCart ? 'rgba(255,255,255,0.1)' : 'transparent' ?>;
+                              font-weight: <?= $isCart ? 'bold' : 'normal' ?>;"
+                       onmouseover="this.style.backgroundColor='rgba(255,255,255,0.1)'"
+                       onmouseout="this.style.backgroundColor='<?= $isCart ? 'rgba(255,255,255,0.1)' : 'transparent' ?>'">
+                        🛒 Panier
+                    </a>
+                </li>
+                <li>
+                    <a href="/orders?user_id=<?= $user_id ?>" 
+                       style="color: <?= $isOrders ? '#ffc107' : 'white' ?>; 
+                              text-decoration: none; 
+                              padding: 8px 15px; 
+                              border-radius: 4px;
+                              display: inline-block;
+                              transition: background-color 0.3s;
+                              background-color: <?= $isOrders ? 'rgba(255,255,255,0.1)' : 'transparent' ?>;
+                              font-weight: <?= $isOrders ? 'bold' : 'normal' ?>;"
+                       onmouseover="this.style.backgroundColor='rgba(255,255,255,0.1)'"
+                       onmouseout="this.style.backgroundColor='<?= $isOrders ? 'rgba(255,255,255,0.1)' : 'transparent' ?>'">
+                        📋 Mes commandes
                     </a>
                 </li>
             </ul>

@@ -51,7 +51,29 @@
                             <div style="font-size: 12px; color: #666; margin-top: 5px;">
                                 Stock: <?= htmlspecialchars($product['stock']) ?>
                             </div>
+                            <?php if (!empty($product['categorie_nom'])): ?>
+                                <div style="font-size: 12px; color: #28a745; margin-top: 5px;">
+                                    📁 <?= htmlspecialchars($product['categorie_nom']) ?>
+                                </div>
+                            <?php endif; ?>
                         </div>
+                    </div>
+                    
+                    <div style="margin-top: 15px; display: flex; gap: 10px;">
+                        <a href="/products/show?id=<?= htmlspecialchars($product['id']) ?>" 
+                           style="flex: 1; padding: 8px; background-color: #6c757d; color: white; text-decoration: none; border-radius: 4px; text-align: center; font-size: 14px;">
+                            👁️ Voir détails
+                        </a>
+                        <form method="POST" action="/cart/add-from-form" style="flex: 1; margin: 0;">
+                            <input type="hidden" name="product_id" value="<?= htmlspecialchars($product['id']) ?>">
+                            <input type="hidden" name="quantite" value="1">
+                            <input type="hidden" name="user_id" value="1">
+                            <button type="submit" 
+                                    style="width: 100%; padding: 8px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;"
+                                    <?= $product['stock'] <= 0 ? 'disabled title="Stock épuisé"' : '' ?>>
+                                🛒 Ajouter au panier
+                            </button>
+                        </form>
                     </div>
                     
                     <div style="margin-top: 10px; font-size: 12px; color: #999;">
@@ -62,8 +84,11 @@
         </div>
     <?php endif; ?>
     
-    <div style="margin-top: 30px; text-align: center;">
+    <div style="margin-top: 30px; display: flex; justify-content: space-between; align-items: center;">
         <a href="/" style="color: #007bff; text-decoration: none;">← Retour à l'accueil</a>
+        <a href="/cart?user_id=1" style="padding: 10px 20px; background-color: #ffc107; color: #000; text-decoration: none; border-radius: 4px; font-weight: bold;">
+            🛒 Voir mon panier
+        </a>
     </div>
 </div>
 

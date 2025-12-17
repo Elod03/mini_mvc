@@ -67,6 +67,28 @@
         </div>
         
         <div>
+            <label for="categorie_id" style="display: block; margin-bottom: 5px; font-weight: bold;">Catégorie :</label>
+            <select 
+                id="categorie_id" 
+                name="categorie_id"
+                style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;"
+            >
+                <option value="">-- Sélectionnez une catégorie (optionnel) --</option>
+                <?php if (isset($categories)): ?>
+                    <?php foreach ($categories as $categorie): ?>
+                        <option 
+                            value="<?= $categorie['id'] ?>"
+                            <?= (isset($old_values['categorie_id']) && $old_values['categorie_id'] == $categorie['id']) ? 'selected' : '' ?>
+                        >
+                            <?= htmlspecialchars($categorie['nom']) ?>
+                        </option>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </select>
+            <small style="display: block; margin-top: 5px; color: #666;">Sélectionnez la catégorie du produit (optionnel)</small>
+        </div>
+        
+        <div>
             <label for="image_url" style="display: block; margin-bottom: 5px; font-weight: bold;">URL de l'image :</label>
             <input 
                 type="url" 

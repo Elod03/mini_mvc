@@ -14,6 +14,7 @@ class Product
     private $prix;
     private $stock;
     private $image_url;
+    private $categorie_id;
 
     // =====================
     // Getters / Setters
@@ -79,30 +80,50 @@ class Product
         $this->image_url = $image_url;
     }
 
+    public function getCategorieId()
+    {
+        return $this->categorie_id;
+    }
+
+    public function setCategorieId($categorie_id)
+    {
+        $this->categorie_id = $categorie_id;
+    }
+
     // =====================
     // Méthodes CRUD
     // =====================
 
     /**
-     * Récupère tous les produits
+     * Récupère tous les produits avec leurs catégories
      * @return array
      */
     public static function getAll()
     {
         $pdo = Database::getPDO();
-        $stmt = $pdo->query("SELECT * FROM produit ORDER BY id DESC");
+        $stmt = $pdo->query("
+            SELECT p.*, c.nom as categorie_nom 
+            FROM produit p 
+            LEFT JOIN categorie c ON p.categorie_id = c.id 
+            ORDER BY p.id DESC
+        ");
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     /**
-     * Récupère un produit par son ID
+     * Récupère un produit par son ID avec sa catégorie
      * @param int $id
      * @return array|null
      */
     public static function findById($id)
     {
         $pdo = Database::getPDO();
-        $stmt = $pdo->prepare("SELECT * FROM produit WHERE id = ?");
+        $stmt = $pdo->prepare("
+            SELECT p.*, c.nom as categorie_nom 
+            FROM produit p 
+            LEFT JOIN categorie c ON p.categorie_id = c.id 
+            WHERE p.id = ?
+        ");
         $stmt->execute([$id]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
@@ -114,13 +135,14 @@ class Product
     public function save()
     {
         $pdo = Database::getPDO();
-        $stmt = $pdo->prepare("INSERT INTO produit (nom, description, prix, stock, image_url) VALUES (?, ?, ?, ?, ?)");
+        $stmt = $pdo->prepare("INSERT INTO produit (nom, description, prix, stock, image_url, categorie_id) VALUES (?, ?, ?, ?, ?, ?)");
         return $stmt->execute([
             $this->nom,
             $this->description,
             $this->prix,
             $this->stock,
-            $this->image_url
+            $this->image_url,
+            $this->categorie_id
         ]);
     }
 
@@ -131,13 +153,14 @@ class Product
     public function update()
     {
         $pdo = Database::getPDO();
-        $stmt = $pdo->prepare("UPDATE produit SET nom = ?, description = ?, prix = ?, stock = ?, image_url = ? WHERE id = ?");
+        $stmt = $pdo->prepare("UPDATE produit SET nom = ?, description = ?, prix = ?, stock = ?, image_url = ?, categorie_id = ? WHERE id = ?");
         return $stmt->execute([
             $this->nom,
             $this->description,
             $this->prix,
             $this->stock,
             $this->image_url,
+            $this->categorie_id,
             $this->id
         ]);
     }
