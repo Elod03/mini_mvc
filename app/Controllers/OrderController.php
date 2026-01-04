@@ -15,7 +15,8 @@ final class OrderController extends Controller
      */
     public function listByUser(): void
     {
-        $user_id = $_GET['user_id'] ?? 1; // Par défaut user_id = 1 pour la démo
+        $this->requireAuth();
+        $user_id = $this->getUserId();
         
         $orders = Order::getByUserId($user_id);
         
@@ -82,32 +83,27 @@ final class OrderController extends Controller
      */
     public function create(): void
     {
+        $this->requireAuth();
+        
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            header('Location: /cart?user_id=' . ($_GET['user_id'] ?? 1));
+            header('Location: /cart');
             return;
         }
         
-        $input = json_decode(file_get_contents('php://input'), true);
-        if ($input === null) {
-            $input = $_POST;
-        }
-        
-        $user_id = $input['user_id'] ?? $_GET['user_id'] ?? 1;
-        
-        // Vérifie que le panier n'est pas vide
+        $user_id = $this->getUserId();
+
         $cartItems = Cart::getByUserId($user_id);
         if (empty($cartItems)) {
-            header('Location: /cart?user_id=' . $user_id . '&error=empty_cart');
+            header('Location: /cart?error=empty_cart');
             return;
         }
-        
-        // Crée la commande
+
         $orderId = Order::createFromCart($user_id);
         
         if ($orderId) {
             header('Location: /orders/show?id=' . $orderId . '&success=created');
         } else {
-            header('Location: /cart?user_id=' . $user_id . '&error=create_failed');
+            header('Location: /cart?error=create_failed');
         }
     }
 
@@ -145,8 +141,7 @@ final class OrderController extends Controller
         $order = new Order();
         $order->setId($input['order_id']);
         $order->setStatut($input['statut']);
-        
-        // Récupère le total existant
+
         $pdo = \Mini\Core\Database::getPDO();
         $stmt = $pdo->prepare("SELECT total FROM commande WHERE id = ?");
         $stmt->execute([$input['order_id']]);

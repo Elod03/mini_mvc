@@ -14,10 +14,6 @@ class Cart
     private $created_at;
     private $updated_at;
 
-    // =====================
-    // Getters / Setters
-    // =====================
-
     public function getId()
     {
         return $this->id;
@@ -77,10 +73,6 @@ class Cart
     {
         $this->updated_at = $updated_at;
     }
-
-    // =====================
-    // Méthodes CRUD
-    // =====================
 
     /**
      * Récupère tous les articles du panier d'un utilisateur
@@ -142,16 +134,13 @@ class Cart
     public function save()
     {
         $pdo = Database::getPDO();
-        
-        // Vérifie si l'article existe déjà dans le panier
+
         $existing = self::findByUserAndProduct($this->user_id, $this->product_id);
-        
+
         if ($existing) {
-            // Met à jour la quantité
             $stmt = $pdo->prepare("UPDATE panier SET quantite = ? WHERE user_id = ? AND product_id = ?");
             return $stmt->execute([$this->quantite, $this->user_id, $this->product_id]);
         } else {
-            // Ajoute un nouvel article
             $stmt = $pdo->prepare("INSERT INTO panier (user_id, product_id, quantite) VALUES (?, ?, ?)");
             return $stmt->execute([$this->user_id, $this->product_id, $this->quantite]);
         }

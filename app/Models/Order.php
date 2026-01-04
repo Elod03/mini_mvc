@@ -16,10 +16,6 @@ class Order
     private $created_at;
     private $updated_at;
 
-    // =====================
-    // Getters / Setters
-    // =====================
-
     public function getId()
     {
         return $this->id;
@@ -80,10 +76,6 @@ class Order
         $this->updated_at = $updated_at;
     }
 
-    // =====================
-    // Méthodes CRUD
-    // =====================
-
     /**
      * Récupère toutes les commandes d'un utilisateur
      * @param int $user_id
@@ -126,8 +118,7 @@ class Order
     public static function findByIdWithProducts($id)
     {
         $pdo = Database::getPDO();
-        
-        // Récupère la commande
+
         $stmt = $pdo->prepare("
             SELECT c.*, u.nom as user_nom, u.email as user_email
             FROM commande c
@@ -136,12 +127,11 @@ class Order
         ");
         $stmt->execute([$id]);
         $order = $stmt->fetch(PDO::FETCH_ASSOC);
-        
+
         if (!$order) {
             return null;
         }
-        
-        // Récupère les produits de la commande
+
         $stmt = $pdo->prepare("
             SELECT cp.*, p.nom as product_nom, p.image_url, cat.nom as categorie_nom
             FROM commande_produit cp
@@ -163,28 +153,24 @@ class Order
     public static function createFromCart($user_id)
     {
         $pdo = Database::getPDO();
-        
-        // Récupère les articles du panier
+
         $cartItems = Cart::getByUserId($user_id);
-        
+
         if (empty($cartItems)) {
             return false;
         }
-        
-        // Calcule le total
+
         $total = Cart::getTotalByUserId($user_id);
-        
+
         try {
             $pdo->beginTransaction();
-            
-            // Crée la commande
+
             $stmt = $pdo->prepare("INSERT INTO commande (user_id, statut, total) VALUES (?, 'validee', ?)");
             $stmt->execute([$user_id, $total]);
             $orderId = $pdo->lastInsertId();
-            
-            // Ajoute les produits à la commande
+
             $stmt = $pdo->prepare("INSERT INTO commande_produit (commande_id, product_id, quantite, prix_unitaire) VALUES (?, ?, ?, ?)");
-            
+
             foreach ($cartItems as $item) {
                 $product = Product::findById($item['id']);
                 if ($product) {
@@ -194,15 +180,13 @@ class Order
                         $item['quantite'],
                         $product['prix']
                     ]);
-                    
-                    // Met à jour le stock
+
                     $newStock = $product['stock'] - $item['quantite'];
                     $updateStmt = $pdo->prepare("UPDATE produit SET stock = ? WHERE id = ?");
                     $updateStmt->execute([$newStock, $item['id']]);
                 }
             }
-            
-            // Vide le panier
+
             Cart::clearByUserId($user_id);
             
             $pdo->commit();

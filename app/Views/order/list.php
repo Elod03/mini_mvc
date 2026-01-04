@@ -1,55 +1,33 @@
 <!-- Liste des commandes -->
-<div style="max-width: 1200px; margin: 0 auto; padding: 20px;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
-        <h2>Mes commandes</h2>
-        <a href="/products" style="padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 4px; display: inline-block;">
+<div class="container fade-in">
+    <div class="flex-between mb-3">
+        <h2 style="font-size: 2rem; font-weight: 700; color: var(--gray-900);">Mes commandes</h2>
+        <a href="/products" class="btn btn-primary">
             ← Retour aux produits
         </a>
     </div>
     
     <?php if (empty($orders)): ?>
-        <div style="text-align: center; padding: 60px; background-color: #f8f9fa; border-radius: 8px;">
-            <div style="font-size: 64px; margin-bottom: 20px;">📋</div>
-            <h3 style="color: #666; margin-bottom: 15px;">Aucune commande</h3>
-            <p style="color: #999; margin-bottom: 30px;">Vous n'avez pas encore passé de commande.</p>
-            <a href="/products" style="padding: 12px 30px; background-color: #007bff; color: white; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold;">
+        <div class="empty-state">
+            <div class="empty-state-icon">📋</div>
+            <h3 class="empty-state-title">Aucune commande</h3>
+            <p class="empty-state-text">Vous n'avez pas encore passé de commande.</p>
+            <a href="/products" class="btn btn-primary">
                 Voir les produits
             </a>
         </div>
     <?php else: ?>
-        <div style="display: flex; flex-direction: column; gap: 20px;">
+        <div style="display: flex; flex-direction: column; gap: 1.25rem;">
             <?php foreach ($orders as $order): ?>
-                <div style="border: 1px solid #ddd; border-radius: 8px; padding: 20px; background-color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                    <div style="display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; gap: 20px;">
+                <div class="order-card">
+                    <div class="flex-between" style="flex-wrap: wrap; gap: 1.25rem;">
                         <!-- Informations principales -->
                         <div style="flex: 1;">
-                            <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
-                                <h3 style="margin: 0; color: #333; font-size: 20px;">
+                            <div class="flex gap-2" style="align-items: center; margin-bottom: 1rem; flex-wrap: wrap;">
+                                <h3 style="margin: 0; color: var(--gray-900); font-size: 1.5rem; font-weight: 600;">
                                     Commande #<?= htmlspecialchars($order['id']) ?>
                                 </h3>
-                                <span style="padding: 5px 15px; border-radius: 20px; font-size: 12px; font-weight: bold;
-                                    background-color: <?php 
-                                        if ($order['statut'] === 'validee') {
-                                            echo '#d4edda';
-                                        } elseif ($order['statut'] === 'en_attente') {
-                                            echo '#fff3cd';
-                                        } elseif ($order['statut'] === 'annulee') {
-                                            echo '#f8d7da';
-                                        } else {
-                                            echo '#e7f3ff';
-                                        }
-                                    ?>;
-                                    color: <?php 
-                                        if ($order['statut'] === 'validee') {
-                                            echo '#155724';
-                                        } elseif ($order['statut'] === 'en_attente') {
-                                            echo '#856404';
-                                        } elseif ($order['statut'] === 'annulee') {
-                                            echo '#721c24';
-                                        } else {
-                                            echo '#0066cc';
-                                        }
-                                    ?>;">
+                                <span class="order-status <?= htmlspecialchars($order['statut']) ?>">
                                     <?php 
                                         if ($order['statut'] === 'validee') {
                                             echo '✅ Validée';
@@ -64,19 +42,18 @@
                                 </span>
                             </div>
                             
-                            <div style="color: #666; font-size: 14px; margin-bottom: 10px;">
+                            <div style="color: var(--gray-600); font-size: 0.875rem; margin-bottom: 0.75rem;">
                                 <strong>Date :</strong> <?= date('d/m/Y à H:i', strtotime($order['created_at'])) ?>
                             </div>
                             
-                            <div style="font-size: 24px; font-weight: bold; color: #007bff;">
+                            <div style="font-size: 1.75rem; font-weight: 700; color: var(--primary-color);">
                                 <?= number_format((float)$order['total'], 2, ',', ' ') ?> €
                             </div>
                         </div>
                         
                         <!-- Actions -->
-                        <div style="display: flex; flex-direction: column; gap: 10px;">
-                            <a href="/orders/show?id=<?= htmlspecialchars($order['id']) ?>" 
-                               style="padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 4px; text-align: center; font-size: 14px;">
+                        <div>
+                            <a href="/orders/show?id=<?= htmlspecialchars($order['id']) ?>" class="btn btn-primary">
                                 👁️ Voir les détails
                             </a>
                         </div>
@@ -86,8 +63,7 @@
         </div>
     <?php endif; ?>
     
-    <div style="margin-top: 30px; text-align: center;">
-        <a href="/" style="color: #007bff; text-decoration: none;">← Retour à l'accueil</a>
+    <div class="text-center mt-4">
+        <a href="/" style="color: var(--primary-color); text-decoration: none; font-weight: 500;">← Retour à l'accueil</a>
     </div>
 </div>
-

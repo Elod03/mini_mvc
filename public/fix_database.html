@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Réparer la base de données - Mini MVC</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #f5c6cb;
+            margin: 20px 0;
+        }
+        .solution {
+            background: #d1ecf1;
+            color: #0c5460;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #bee5eb;
+            margin: 20px 0;
+        }
+        .step {
+            background: #f8f9fa;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 4px solid #007bff;
+        }
+        .code {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            border: 1px solid #dee2e6;
+            margin: 10px 0;
+            white-space: pre-line;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px 5px;
+            transition: transform 0.2s;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        .btn-success {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+        .links {
+            text-align: center;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Réparation de la base de données</h1>
+
+        <div class="error">
+            <strong>Erreur rencontrée :</strong><br>
+            "Table 'mini_mvc.produit' doesn't exist in engine"
+        </div>
+
+        <div class="solution">
+            <h3>✅ Solution : Recréer les tables manuellement</h3>
+
+            <div class="step">
+                <strong>Étape 1 :</strong> Ouvrez phpMyAdmin<br>
+                <a href="http://localhost/phpmyadmin" target="_blank" class="btn">📱 Ouvrir phpMyAdmin</a>
+            </div>
+
+            <div class="step">
+                <strong>Étape 2 :</strong> Sélectionnez la base "mini_mvc"<br>
+                Dans le menu de gauche, cliquez sur "mini_mvc"
+            </div>
+
+            <div class="step">
+                <strong>Étape 3 :</strong> Cliquez sur "SQL" dans le menu du haut
+            </div>
+
+            <div class="step">
+                <strong>Étape 4 :</strong> Copiez et collez ce code SQL :
+                <div class="code">-- Supprimer les anciennes tables (si elles existent)
+DROP TABLE IF EXISTS commande_produit;
+DROP TABLE IF EXISTS commande;
+DROP TABLE IF EXISTS panier;
+DROP TABLE IF EXISTS produit;
+DROP TABLE IF EXISTS categorie;
+DROP TABLE IF EXISTS user;
+
+-- Créer la table user
+CREATE TABLE user (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nom VARCHAR(100) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    password VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Créer la table categorie
+CREATE TABLE categorie (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nom VARCHAR(150) NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Créer la table produit (la plus importante)
+CREATE TABLE produit (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nom VARCHAR(255) NOT NULL,
+    description TEXT,
+    prix DECIMAL(10,2) NOT NULL,
+    stock INT NOT NULL DEFAULT 0,
+    image_url VARCHAR(500),
+    categorie_id INT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Insérer des produits d'exemple
+INSERT INTO produit (nom, description, prix, stock) VALUES
+('Ordinateur Portable', 'Ordinateur portable performant', 999.99, 10),
+('Smartphone', 'Téléphone intelligent dernière génération', 699.99, 25),
+('Casque Audio', 'Casque sans fil haute qualité', 149.99, 50),
+('Clavier Mécanique', 'Clavier gaming RGB', 89.99, 30),
+('Souris Gaming', 'Souris gaming ergonomique', 59.99, 40);</div>
+            </div>
+
+            <div class="step">
+                <strong>Étape 5 :</strong> Cliquez sur "Exécuter"
+            </div>
+
+            <div class="step">
+                <strong>Étape 6 :</strong> Vérifiez le résultat<br>
+                Vous devriez voir : "Tables créées avec succès !"
+            </div>
+        </div>
+
+        <div class="solution">
+            <h3>🎯 Après la réparation :</h3>
+            <p>Testez votre application :</p>
+            <div class="links">
+                <a href="../" class="btn btn-success">🏠 Aller sur Mini MVC</a>
+                <a href="mysql_diagnostic.php" class="btn">🔍 Diagnostic MySQL</a>
+                <a href="test_connection.php" class="btn">🧪 Test connexion</a>
+            </div>
+        </div>
+
+        <div class="solution">
+            <h3>📋 Fichier alternatif :</h3>
+            <p>Si phpMyAdmin ne fonctionne pas, vous pouvez utiliser le fichier :</p>
+            <code>mini_mvc\database\manual_setup.sql</code><br>
+            <small>Ouvrez-le avec un éditeur de texte et copiez le contenu dans phpMyAdmin</small>
+        </div>
+    </div>
+</body>
+</html>

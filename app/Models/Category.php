@@ -13,10 +13,6 @@ class Category
     private $created_at;
     private $updated_at;
 
-    // =====================
-    // Getters / Setters
-    // =====================
-
     public function getId()
     {
         return $this->id;
@@ -66,10 +62,6 @@ class Category
     {
         $this->updated_at = $updated_at;
     }
-
-    // =====================
-    // Méthodes CRUD
-    // =====================
 
     /**
      * Récupère toutes les catégories

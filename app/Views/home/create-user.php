@@ -1,8 +1,6 @@
-<!-- Formulaire pour créer un nouvel utilisateur -->
 <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
     <h2>Ajouter un nouvel utilisateur</h2>
-    
-    <!-- Message de succès ou d'erreur -->
+
     <div id="message" style="display: none; padding: 10px; margin-bottom: 20px; border-radius: 4px;"></div>
     
     <form id="userForm" style="display: flex; flex-direction: column; gap: 15px;">
@@ -46,23 +44,19 @@
 </div>
 
 <script>
-// Gestion de la soumission du formulaire
 document.getElementById('userForm').addEventListener('submit', async function(e) {
     e.preventDefault();
-    
-    // Récupère les valeurs du formulaire
+
     const nom = document.getElementById('nom').value.trim();
     const email = document.getElementById('email').value.trim();
-    
-    // Affiche un message de chargement
+
     const messageDiv = document.getElementById('message');
     messageDiv.style.display = 'block';
     messageDiv.style.backgroundColor = '#d1ecf1';
     messageDiv.style.color = '#0c5460';
     messageDiv.textContent = 'Création en cours...';
-    
+
     try {
-        // Envoie la requête POST avec les données en JSON
         const response = await fetch('/users', {
             method: 'POST',
             headers: {
@@ -77,21 +71,17 @@ document.getElementById('userForm').addEventListener('submit', async function(e)
         const data = await response.json();
         
         if (response.ok && data.success) {
-            // Succès
             messageDiv.style.backgroundColor = '#d4edda';
             messageDiv.style.color = '#155724';
             messageDiv.textContent = '✅ ' + data.message;
-            
-            // Réinitialise le formulaire
+
             document.getElementById('userForm').reset();
         } else {
-            // Erreur
             messageDiv.style.backgroundColor = '#f8d7da';
             messageDiv.style.color = '#721c24';
             messageDiv.textContent = '❌ ' + (data.error || 'Une erreur est survenue');
         }
     } catch (error) {
-        // Erreur réseau
         messageDiv.style.backgroundColor = '#f8d7da';
         messageDiv.style.color = '#721c24';
         messageDiv.textContent = '❌ Erreur de connexion : ' + error.message;

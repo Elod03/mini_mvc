@@ -1,6 +1,5 @@
 <?php
 
-// Ici je définit le namespace ou il y aura ma class
 namespace Mini\Models;
 
 use Mini\Core\Database;
@@ -15,10 +14,6 @@ class Product
     private $stock;
     private $image_url;
     private $categorie_id;
-
-    // =====================
-    // Getters / Setters
-    // =====================
 
     public function getId()
     {
@@ -90,14 +85,6 @@ class Product
         $this->categorie_id = $categorie_id;
     }
 
-    // =====================
-    // Méthodes CRUD
-    // =====================
-
-    /**
-     * Récupère tous les produits avec leurs catégories
-     * @return array
-     */
     public static function getAll()
     {
         $pdo = Database::getPDO();
@@ -110,11 +97,6 @@ class Product
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    /**
-     * Récupère un produit par son ID avec sa catégorie
-     * @param int $id
-     * @return array|null
-     */
     public static function findById($id)
     {
         $pdo = Database::getPDO();
@@ -128,47 +110,182 @@ class Product
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    /**
-     * Crée un nouveau produit
-     * @return bool
-     */
+    private static function hasImageUrlColumn()
+    {
+        static $hasColumn = null;
+        if ($hasColumn === null) {
+            try {
+                $pdo = Database::getPDO();
+                $stmt = $pdo->query("SHOW COLUMNS FROM produit LIKE 'image_url'");
+                $hasColumn = $stmt->rowCount() > 0;
+            } catch (\Exception $e) {
+                $hasColumn = false;
+            }
+        }
+        return $hasColumn;
+    }
+
+    private static function categoryExists($categorie_id)
+    {
+        if ($categorie_id === null || $categorie_id === '' || $categorie_id === 0) {
+            return false;
+        }
+
+        $categorie_id = (int)$categorie_id;
+        if ($categorie_id <= 0) {
+            return false;
+        }
+        
+        try {
+            $pdo = Database::getPDO();
+
+            $stmt = $pdo->query("SHOW TABLES LIKE 'categorie'");
+            if ($stmt->rowCount() == 0) {
+                return false;
+            }
+
+            $stmt = $pdo->prepare("SELECT id FROM categorie WHERE id = ? LIMIT 1");
+            $stmt->execute([$categorie_id]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            return $result !== false && isset($result['id']) && (int)$result['id'] === $categorie_id;
+        } catch (\Exception $e) {
+            return false;
+        } catch (\PDOException $e) {
+            return false;
+        }
+    }
+
+    private function saveWithoutCategory()
+    {
+        $pdo = Database::getPDO();
+        
+        $values = [
+            $this->nom,
+            $this->description,
+            $this->prix,
+            $this->stock
+        ];
+        
+        $columns = ['nom', 'description', 'prix', 'stock'];
+        $placeholders = ['?', '?', '?', '?'];
+        
+        if (self::hasImageUrlColumn()) {
+            $columns[] = 'image_url';
+            $placeholders[] = '?';
+            $values[] = $this->image_url;
+        }
+        
+        $sql = "INSERT INTO produit (" . implode(', ', $columns) . ") VALUES (" . implode(', ', $placeholders) . ")";
+        $stmt = $pdo->prepare($sql);
+        return $stmt->execute($values);
+    }
+
     public function save()
     {
         $pdo = Database::getPDO();
-        $stmt = $pdo->prepare("INSERT INTO produit (nom, description, prix, stock, image_url, categorie_id) VALUES (?, ?, ?, ?, ?, ?)");
-        return $stmt->execute([
+
+        $values = [
             $this->nom,
             $this->description,
             $this->prix,
-            $this->stock,
-            $this->image_url,
-            $this->categorie_id
-        ]);
+            $this->stock
+        ];
+
+        $columns = ['nom', 'description', 'prix', 'stock'];
+        $placeholders = ['?', '?', '?', '?'];
+
+        if (self::hasImageUrlColumn()) {
+            $columns[] = 'image_url';
+            $placeholders[] = '?';
+            $values[] = $this->image_url;
+        }
+
+        $shouldIncludeCategory = false;
+        $validCategorieId = null;
+        
+        if ($this->categorie_id !== null && $this->categorie_id !== '' && $this->categorie_id !== 0) {
+            $categorieIdInt = (int)$this->categorie_id;
+            if ($categorieIdInt > 0) {
+                // Vérifier que la catégorie existe vraiment
+                if (self::categoryExists($categorieIdInt)) {
+                    $shouldIncludeCategory = true;
+                    $validCategorieId = $categorieIdInt;
+                }
+            }
+        }
+
+        if ($shouldIncludeCategory && $validCategorieId !== null) {
+            $columns[] = 'categorie_id';
+            $placeholders[] = '?';
+            $values[] = $validCategorieId;
+        }
+
+        $sql = "INSERT INTO produit (" . implode(', ', $columns) . ") VALUES (" . implode(', ', $placeholders) . ")";
+        $stmt = $pdo->prepare($sql);
+
+        try {
+            return $stmt->execute($values);
+        } catch (\PDOException $e) {
+            if ($e->getCode() == 23000 || strpos($e->getMessage(), 'foreign key') !== false || strpos($e->getMessage(), '1452') !== false) {
+                if ($shouldIncludeCategory) {
+                    return $this->saveWithoutCategory();
+                }
+            }
+            throw $e;
+        }
     }
 
-    /**
-     * Met à jour les informations d'un produit existant
-     * @return bool
-     */
     public function update()
     {
         $pdo = Database::getPDO();
-        $stmt = $pdo->prepare("UPDATE produit SET nom = ?, description = ?, prix = ?, stock = ?, image_url = ?, categorie_id = ? WHERE id = ?");
-        return $stmt->execute([
+
+        $values = [
             $this->nom,
             $this->description,
             $this->prix,
-            $this->stock,
-            $this->image_url,
-            $this->categorie_id,
-            $this->id
-        ]);
+            $this->stock
+        ];
+
+        $sets = ['nom = ?', 'description = ?', 'prix = ?', 'stock = ?'];
+
+        if (self::hasImageUrlColumn()) {
+            $sets[] = 'image_url = ?';
+            $values[] = $this->image_url;
+        }
+
+        $validCategorieId = null;
+        if ($this->categorie_id !== null && $this->categorie_id !== '' && $this->categorie_id !== 0) {
+            $categorieIdInt = (int)$this->categorie_id;
+            if ($categorieIdInt > 0 && self::categoryExists($categorieIdInt)) {
+                $validCategorieId = $categorieIdInt;
+            }
+        }
+
+        $sets[] = 'categorie_id = ?';
+        $values[] = $validCategorieId;
+
+        $values[] = $this->id;
+
+        try {
+            $sql = "UPDATE produit SET " . implode(', ', $sets) . " WHERE id = ?";
+            $stmt = $pdo->prepare($sql);
+            return $stmt->execute($values);
+        } catch (\PDOException $e) {
+            if ($e->getCode() == 23000 || strpos($e->getMessage(), 'foreign key') !== false || strpos($e->getMessage(), '1452') !== false) {
+                $sets = array_filter($sets, function($set) { return strpos($set, 'categorie_id') === false; });
+                $values = array_slice($values, 0, -1);
+                $sets[] = 'categorie_id = ?';
+                $values[] = null;
+                $values[] = $this->id;
+                $sql = "UPDATE produit SET " . implode(', ', $sets) . " WHERE id = ?";
+                $stmt = $pdo->prepare($sql);
+                return $stmt->execute($values);
+            }
+            throw $e;
+        }
     }
 
-    /**
-     * Supprime un produit
-     * @return bool
-     */
     public function delete()
     {
         $pdo = Database::getPDO();

@@ -1,30 +1,59 @@
 <?php
-// Active le mode strict pour les types
 declare(strict_types=1);
-// Espace de noms du noyau (Core)
+
 namespace Mini\Core;
-// Déclare une classe abstraite de contrôleur de base
+
 class Controller
 {
-    // Méthode utilitaire pour rendre une vue avec des paramètres
+    /**
+     * Constructeur qui démarre la session si elle n'est pas déjà démarrée
+     */
+    public function __construct()
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+    }
+
+    /**
+     * Vérifie si l'utilisateur est connecté
+     */
+    protected function isAuthenticated(): bool
+    {
+        return isset($_SESSION['user_id']);
+    }
+
+    /**
+     * Redirige vers la page de connexion si l'utilisateur n'est pas authentifié
+     */
+    protected function requireAuth(): void
+    {
+        if (!$this->isAuthenticated()) {
+            $redirect = urlencode($_SERVER['REQUEST_URI'] ?? '/');
+            header('Location: /auth/login?redirect=' . $redirect);
+            exit;
+        }
+    }
+
+    /**
+     * Récupère l'ID de l'utilisateur connecté
+     */
+    protected function getUserId(): ?int
+    {
+        return $_SESSION['user_id'] ?? null;
+    }
+
     protected function render(string $view, array $params = []): void
     {
-        // Extrait les paramètres en variables locales, sans écraser les existantes
         extract(array: $params);
-        // Construit le chemin du fichier de vue
         $viewFile = dirname(__DIR__) . '/Views/' . $view . '.php';
-        // Construit le chemin du layout principal
         $layoutFile = dirname(__DIR__) . '/Views/layout.php';
 
-        // Démarre la temporisation de sortie pour capturer le rendu de la vue
         ob_start();
-        // Inclut la vue spécifique
         require $viewFile;
-        
-        // Récupère le contenu rendu et nettoie le tampon
+
         $content = ob_get_clean();
 
-        // Inclut le layout qui utilise la variable $content
         require $layoutFile;
     }
 }

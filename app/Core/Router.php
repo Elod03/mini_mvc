@@ -1,48 +1,65 @@
 <?php
-// Active le mode strict pour les types
 declare(strict_types=1);
-// Espace de noms du noyau
+
 namespace Mini\Core;
-// Déclare le routeur HTTP minimaliste
+
 final class Router
 {
-    // Tableau des routes : [méthode, chemin, [ClasseContrôleur, action]]
     /** @var array<int, array{0:string,1:string,2:array{0:class-string,1:string}} > */
     private array $routes;
 
-    /**
-     * Initialise le routeur avec les routes configurées
-     * @param array<int, array{0:string,1:string,2:array{0:class-string,1:string}} > $routes
-     */
     public function __construct(array $routes)
     {
-        // Mémorise les routes fournies
         $this->routes = $routes;
     }
 
-    // Dirige la requête vers le bon contrôleur en fonction méthode/URI
     public function dispatch(string $method, string $uri): void
     {
-        // Extrait uniquement le chemin de l'URI
         $path = parse_url($uri, PHP_URL_PATH) ?? '/';
 
-        // Parcourt chaque route enregistrée
+        $scriptName = $_SERVER['SCRIPT_NAME'] ?? '/index.php';
+        $basePath = dirname($scriptName);
+
+        if ($basePath === '/' || $basePath === '\\' || $basePath === '.') {
+            $basePath = '';
+        } else {
+            $basePath = str_replace('\\', '/', $basePath);
+            $basePath = '/' . trim($basePath, '/');
+        }
+
+        if ($basePath !== '' && $basePath !== '/' && strpos($path, $basePath) === 0) {
+            $path = substr($path, strlen($basePath));
+            if ($path === '') {
+                $path = '/';
+            }
+        }
+
+        $path = '/' . trim($path, '/');
+        if ($path !== '/') {
+            $path = rtrim($path, '/');
+        }
+
         foreach ($this->routes as [$routeMethod, $routePath, $handler]) {
-            // Vérifie correspondance stricte de méthode et de chemin
             if ($method === $routeMethod && $path === $routePath) {
-                // Déstructure le gestionnaire en [classe, action]
                 [$class, $action] = $handler;
-                // Instancie le contrôleur cible
                 $controller = new $class();
-                // Appelle l'action sur le contrôleur
                 $controller->$action();
                 return;
             }
         }
-
-        // Si aucune route ne correspond, renvoie un 404 minimaliste
         http_response_code(404);
-        echo '404 Not Found';
+        echo '<h1>404 Not Found</h1>';
+        echo '<p><strong>Méthode:</strong> ' . htmlspecialchars($method) . '</p>';
+        echo '<p><strong>URI originale:</strong> ' . htmlspecialchars($uri) . '</p>';
+        echo '<p><strong>Chemin extrait:</strong> ' . htmlspecialchars($path) . '</p>';
+        echo '<p><strong>Chemin de base:</strong> ' . htmlspecialchars($basePath ?: '(aucun)') . '</p>';
+        echo '<p><strong>SCRIPT_NAME:</strong> ' . htmlspecialchars($scriptName) . '</p>';
+        echo '<h2>Routes disponibles:</h2><ul>';
+        foreach ($this->routes as [$routeMethod, $routePath, $handler]) {
+            $match = ($method === $routeMethod && $path === $routePath) ? ' ✅' : '';
+            echo '<li>[' . htmlspecialchars($routeMethod) . '] ' . htmlspecialchars($routePath) . $match . '</li>';
+        }
+        echo '</ul>';
     }
 }
 
